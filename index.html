@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Typo Trainer</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 2rem;
+    background: #f0f0f0;
+  }
+  #typo-word {
+    font-size: 3rem;
+    margin: 2rem 0;
+    color: #d9534f;
+  }
+  input {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    width: 300px;
+    text-align: center;
+  }
+  #message {
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+  #score {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+  #next-btn {
+    margin-top: 2rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>Typo Trainer</h1>
+<p>Type the correct spelling of the word shown (the red one is misspelled):</p>
+
+<div id="typo-word">exampel</div>
+
+<input type="text" id="user-input" placeholder="Type here..." autocomplete="off" autofocus />
+
+<div id="message"></div>
+<div id="score">Score: 0</div>
+<button id="next-btn" style="display:none;">Next Word</button>
+
+<script>
+  // Words with typos and correct spellings
+  const words = [
+    { typo: "exampel", correct: "example" },
+    { typo: "recieve", correct: "receive" },
+    { typo: "definately", correct: "definitely" },
+    { typo: "goverment", correct: "government" },
+    { typo: "seperate", correct: "separate" },
+    { typo: "wierd", correct: "weird" },
+    { typo: "occurence", correct: "occurrence" },
+    { typo: "thier", correct: "their" },
+    { typo: "untill", correct: "until" },
+    { typo: "adress", correct: "address" }
+  ];
+
+  let currentIndex = 0;
+  let score = 0;
+
+  const typoWordEl = document.getElementById('typo-word');
+  const userInput = document.getElementById('user-input');
+  const messageEl = document.getElementById('message');
+  const scoreEl = document.getElementById('score');
+  const nextBtn = document.getElementById('next-btn');
+
+  function showWord(index) {
+    userInput.value = "";
+    messageEl.textContent = "";
+    typoWordEl.textContent = words[index].typo;
+    userInput.disabled = false;
+    userInput.focus();
+    nextBtn.style.display = "none";
+  }
+
+  function checkInput() {
+    const answer = userInput.value.trim().toLowerCase();
+    if (answer === words[currentIndex].correct) {
+      messageEl.style.color = "green";
+      messageEl.textContent = "Correct! 🎉";
+      score++;
+      scoreEl.textContent = `Score: ${score}`;
+      userInput.disabled = true;
+      nextBtn.style.display = "inline-block";
+    } else if (answer.length >= words[currentIndex].correct.length) {
+      messageEl.style.color = "red";
+      messageEl.textContent = "Oops, try again! 😅";
+    } else {
+      messageEl.textContent = "";
+    }
+  }
+
+  userInput.addEventListener('input', checkInput);
+
+  nextBtn.addEventListener('click', () => {
+    currentIndex++;
+    if (currentIndex >= words.length) {
+      alert(`Game over! Your final score is ${score} out of ${words.length}.`);
+      currentIndex = 0;
+      score = 0;
+      scoreEl.textContent = `Score: ${score}`;
+    }
+    showWord(currentIndex);
+  });
+
+  // Start game
+  showWord(currentIndex);
+</script>
+
+</body>
+</html>
