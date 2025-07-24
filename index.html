@@ -165,12 +165,24 @@
     }
   });
 
+  // Enter key triggers Next Word if correct
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !userInput.disabled && userInput.value.trim().toLowerCase() === currentWord.toLowerCase()) {
+      e.preventDefault();
+      nextBtn.click();
+    }
+  });
+
   nextBtn.addEventListener('click', showWord);
 
   async function loadWords() {
     try {
       const response = await fetch('wordlist.json');
       words = await response.json();
+
+      // Filter to words longer than 3 chars
+      words = words.filter(w => w.length > 3);
+
       if (!Array.isArray(words) || words.length === 0) {
         throw new Error('Word list is empty or invalid');
       }
