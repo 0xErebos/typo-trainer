@@ -3,38 +3,86 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Typo Trainer</title>
+<title>Typo Trainer - JSON wordlist</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
   body {
-    font-family: Arial, sans-serif;
-    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 2rem;
-    background: #f0f0f0;
+    user-select: none;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 3rem;
+    margin-bottom: 0.3rem;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  }
+  p {
+    font-weight: 500;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
   }
   #typo-word {
-    font-size: 3rem;
-    margin: 2rem 0;
-    color: #d9534f;
+    font-size: 4rem;
+    font-weight: 700;
+    color: #ff6b6b;
+    margin-bottom: 2rem;
+    letter-spacing: 0.1em;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
   }
   input {
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    width: 300px;
+    font-size: 1.8rem;
+    padding: 0.6rem 1rem;
+    width: 320px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
     text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: box-shadow 0.3s ease;
+  }
+  input:focus {
+    box-shadow: 0 0 15px 3px #ff6b6b;
   }
   #message {
     margin-top: 1rem;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.2rem;
+    min-height: 1.5em;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
   }
   #score {
-    margin-top: 1rem;
-    font-size: 1.2rem;
+    margin-top: 2rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
   }
   #next-btn {
     margin-top: 2rem;
-    padding: 0.5rem 1.5rem;
-    font-size: 1rem;
+    background: #ff6b6b;
+    border: none;
+    padding: 0.7rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 30px;
+    color: white;
     cursor: pointer;
+    box-shadow: 0 6px 15px rgba(255,107,107,0.7);
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  #next-btn:hover {
+    background: #ff5252;
   }
 </style>
 </head>
@@ -43,30 +91,18 @@
 <h1>Typo Trainer</h1>
 <p>Type the correct spelling of the word shown (the red one is misspelled):</p>
 
-<div id="typo-word">exampel</div>
+<div id="typo-word">Loading...</div>
 
-<input type="text" id="user-input" placeholder="Type here..." autocomplete="off" autofocus />
+<input type="text" id="user-input" placeholder="Type here..." autocomplete="off" disabled />
 
 <div id="message"></div>
 <div id="score">Score: 0</div>
 <button id="next-btn" style="display:none;">Next Word</button>
 
 <script>
-  // Words with typos and correct spellings
-  const words = [
-    { typo: "exampel", correct: "example" },
-    { typo: "recieve", correct: "receive" },
-    { typo: "definately", correct: "definitely" },
-    { typo: "goverment", correct: "government" },
-    { typo: "seperate", correct: "separate" },
-    { typo: "wierd", correct: "weird" },
-    { typo: "occurence", correct: "occurrence" },
-    { typo: "thier", correct: "their" },
-    { typo: "untill", correct: "until" },
-    { typo: "adress", correct: "address" }
-  ];
-
-  let currentIndex = 0;
+  let words = [];
+  let currentWord = '';
+  let currentTypo = '';
   let score = 0;
 
   const typoWordEl = document.getElementById('typo-word');
@@ -75,47 +111,78 @@
   const scoreEl = document.getElementById('score');
   const nextBtn = document.getElementById('next-btn');
 
-  function showWord(index) {
-    userInput.value = "";
-    messageEl.textContent = "";
-    typoWordEl.textContent = words[index].typo;
-    userInput.disabled = false;
-    userInput.focus();
-    nextBtn.style.display = "none";
+  function generateTypo(word) {
+    if (word.length < 3) return word;
+
+    let chars = word.split('');
+
+    const typoType = Math.floor(Math.random() * 3);
+
+    switch(typoType) {
+      case 0: // swap two adjacent letters
+        let pos = Math.floor(Math.random() * (chars.length - 1));
+        [chars[pos], chars[pos+1]] = [chars[pos+1], chars[pos]];
+        break;
+      case 1: // delete one letter
+        let delPos = Math.floor(Math.random() * chars.length);
+        chars.splice(delPos, 1);
+        break;
+      case 2: // replace one letter randomly
+        let repPos = Math.floor(Math.random() * chars.length);
+        const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+        let randomChar = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        chars[repPos] = randomChar;
+        break;
+    }
+    return chars.join('');
   }
 
-  function checkInput() {
-    const answer = userInput.value.trim().toLowerCase();
-    if (answer === words[currentIndex].correct) {
-      messageEl.style.color = "green";
-      messageEl.textContent = "Correct! 🎉";
+  function showWord() {
+    const idx = Math.floor(Math.random() * words.length);
+    currentWord = words[idx];
+    currentTypo = generateTypo(currentWord);
+    typoWordEl.textContent = currentTypo;
+    userInput.value = '';
+    userInput.disabled = false;
+    userInput.focus();
+    messageEl.textContent = '';
+    nextBtn.style.display = 'none';
+  }
+
+  userInput.addEventListener('input', () => {
+    if (userInput.value.trim().toLowerCase() === currentWord.toLowerCase()) {
+      messageEl.style.color = 'lime';
+      messageEl.textContent = 'Correct! 🎉';
       score++;
       scoreEl.textContent = `Score: ${score}`;
       userInput.disabled = true;
-      nextBtn.style.display = "inline-block";
-    } else if (answer.length >= words[currentIndex].correct.length) {
-      messageEl.style.color = "red";
-      messageEl.textContent = "Oops, try again! 😅";
+      nextBtn.style.display = 'inline-block';
+    } else if (userInput.value.length >= currentWord.length) {
+      messageEl.style.color = '#ff6b6b';
+      messageEl.textContent = 'Try again 😅';
     } else {
-      messageEl.textContent = "";
+      messageEl.textContent = '';
+    }
+  });
+
+  nextBtn.addEventListener('click', showWord);
+
+  async function loadWords() {
+    try {
+      const response = await fetch('wordlist.json');
+      words = await response.json();
+      if (!Array.isArray(words) || words.length === 0) {
+        throw new Error('Word list is empty or invalid');
+      }
+      showWord();
+      userInput.disabled = false;
+    } catch (error) {
+      typoWordEl.textContent = 'Failed to load word list';
+      console.error(error);
     }
   }
 
-  userInput.addEventListener('input', checkInput);
-
-  nextBtn.addEventListener('click', () => {
-    currentIndex++;
-    if (currentIndex >= words.length) {
-      alert(`Game over! Your final score is ${score} out of ${words.length}.`);
-      currentIndex = 0;
-      score = 0;
-      scoreEl.textContent = `Score: ${score}`;
-    }
-    showWord(currentIndex);
-  });
-
-  // Start game
-  showWord(currentIndex);
+  loadWords();
 </script>
 
 </body>
